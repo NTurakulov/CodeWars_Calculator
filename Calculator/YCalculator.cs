@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq.Expressions;
 
 namespace Calculator;
 
+/// <summary>
+/// Calculator implementation without LINQ Expressions
+/// </summary>
 public class YCalculator : ICalculator
 {
     private string ExpressionText { get; set; } = string.Empty;
@@ -23,18 +25,6 @@ public class YCalculator : ICalculator
     {
         get => _currentContext.Digits;
         set => _currentContext.Digits = value;
-    }
-
-    private Expression LastExpression
-    {
-        get => _currentContext.LastExpression;
-        set => _currentContext.LastExpression = value;
-    }
-
-    private char PendingOperation
-    {
-        get => _currentContext.PendingOperation;
-        set => _currentContext.PendingOperation = value;
     }
 
     private List<string> _errors = new();
@@ -158,12 +148,6 @@ public class YCalculator : ICalculator
         if (_braces.Count != 0)
         {
             var error = "Failed to parse parenthesis";
-            _errors.Add(error);
-        }
-
-        if (PendingOperation != Constants.Default)
-        {
-            var error = "Failed to parse expression - operation argument is missing";
             _errors.Add(error);
         }
 
