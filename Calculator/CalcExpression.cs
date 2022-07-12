@@ -28,12 +28,6 @@ namespace Calculator
         private Expression _rootExpression;
         private Expression _lastExpression;
 
-        /// <summary>
-        /// If last operation is Addition or Subtraction - return false
-        /// If last operation is Multiplication or Division - return true;
-        /// </summary>
-        private bool _lastOperationIsHighPrio = false;
-
         private char _pendindOperation = Default;
 
         public CalcExpression(string input, bool autoEvaluate = false)
@@ -105,39 +99,19 @@ namespace Calculator
                     // =================== operation processing
                     if (_pendindOperation != Default)
                     {
-                        Expression opExp;
                         switch (_pendindOperation)
                         {
                             case '+':
-                                opExp = Expression.Add(_rootExpression, _lastExpression);
-                                _rootExpression = opExp;
+                                _rootExpression = Expression.Add(_rootExpression, _lastExpression);
                                 break;
                             case '-':
-                                opExp = Expression.Subtract(_rootExpression, _lastExpression);
-                                _rootExpression = opExp;
+                                _rootExpression = Expression.Subtract(_rootExpression, _lastExpression);
                                 break;
                             case '*':
-                                if (_rootExpression.NodeType != ExpressionType.Add &&
-                                    _rootExpression.NodeType != ExpressionType.Subtract)
-                                {
-                                    opExp = Expression.Multiply(_rootExpression, _lastExpression);
-                                    _rootExpression = opExp;
-                                    break;
-                                }
-
-                                var binary = _rootExpression as BinaryExpression;
-                                var right = binary.Right;
-
-                                opExp = Expression.Multiply(right, _lastExpression);
-
-                                if (_rootExpression.NodeType == ExpressionType.Add)
-                                    _rootExpression = Expression.Add(binary.Left, opExp);
-                                else
-                                    _rootExpression = Expression.Subtract(binary.Left, opExp);
-
+                                ProcessHighPrioOperation(Expression.Multiply);
                                 break;
                             case '/':
-                                opExp = Expression.Divide(_rootExpression, _lastExpression);
+                                ProcessHighPrioOperation(Expression.Divide);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -163,6 +137,30 @@ namespace Calculator
             var result = final();
 
             return result;
+        }
+
+
+
+        private void ProcessHighPrioOperation(Func<Expression, Expression, BinaryExpression> operation)
+        {
+            // simple case - no need to rebuild the tree
+            if (_rootExpression.NodeType != ExpressionType.Add &&
+                _rootExpression.NodeType != ExpressionType.Subtract)
+            {
+                _rootExpression = operation(_rootExpression, _lastExpression);
+                return;
+            }
+
+            // operation priority changes - need to rebuild the tree
+            var binary = _rootExpression as BinaryExpression;
+            var right = binary.Right;
+
+            var opExp = operation(right, _lastExpression);
+
+            if (_rootExpression.NodeType == ExpressionType.Add)
+                _rootExpression = Expression.Add(binary.Left, opExp);
+            else
+                _rootExpression = Expression.Subtract(binary.Left, opExp);
         }
     }
 }

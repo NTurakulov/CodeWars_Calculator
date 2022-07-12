@@ -107,4 +107,15 @@ public class OperationsTests
 
         Assert.Equal(6, actual);
     }
+
+    [Fact]
+    public void AdditionAndDivision()
+    {
+        var calc = new XCalculator();
+        var expression = "2 + 2 / 2";
+
+        var actual = calc.Evaluate(expression);
+
+        Assert.Equal(3, actual);
+    }
 }
