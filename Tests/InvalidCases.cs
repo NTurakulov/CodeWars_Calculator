@@ -58,6 +58,6 @@ public class InvalidCases
         Assert.Equal(double.NaN, actual);
         var errorsCount = calc.Errors.Count;
         Assert.Equal(1, errorsCount);
-        Assert.Equal("Failed to parse expression - operation argument is missing", calc.Errors.First());
+        Assert.Equal("Unary minus should be separated from the number with a whitespace (at index 5)", calc.Errors.First());
     }
 }

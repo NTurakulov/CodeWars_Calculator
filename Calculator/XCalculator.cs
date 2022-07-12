@@ -43,6 +43,8 @@ public class XCalculator
 
     public ReadOnlyCollection<string> Errors => _errors.AsReadOnly();
 
+    private bool _isUnaryMinus = false;
+
     private void Reset()
     {
         _errors = new List<string>();
@@ -79,6 +81,12 @@ public class XCalculator
 
             if (Constants.Whitespace.Contains(current))
             {
+                if (_isUnaryMinus)
+                {
+                    var error = $"Unary minus should be separated from the number with a whitespace (at index {i})";
+                    _errors.Add(error);
+                }
+
                 continue;
             }
 
@@ -124,11 +132,13 @@ public class XCalculator
             // =================== parse accumulated digits into number ===================
             ParseDigits(i);
 
-            if (current == Constants.Minus && (prev == Constants.Minus || prev == Constants.Default))
+            if (current == Constants.Minus && (Constants.Operations.Contains(prev) || prev == Constants.Default))
             {
+                _isUnaryMinus = true;
                 Digits += Constants.Minus;
                 continue;
             }
+            _isUnaryMinus = false;
 
             // =================== operation processing ===================
             ProcessLastOperation();

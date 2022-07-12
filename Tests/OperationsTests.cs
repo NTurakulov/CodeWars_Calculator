@@ -50,6 +50,31 @@ public class OperationsTests
         Assert.Equal(3, actual);
     }
 
+    // ============================= UNARY MINUS OPERATIONS =============================
+
+    [Fact]
+    public void AddNegativeNumber()
+    {
+        var calc = new XCalculator();
+        var expression = "5 + -2";
+
+        var actual = calc.Evaluate(expression);
+
+        Assert.Equal(3, actual);
+    }
+
+    [Fact]
+    public void SubtractNegativeNumber()
+    {
+        var calc = new XCalculator();
+        var expression = "5 - -2";
+
+        var actual = calc.Evaluate(expression);
+
+        Assert.Equal(7, actual);
+    }
+
+
     // ============================= CONTINUOUS OPERATIONS =============================
 
     [Fact]
