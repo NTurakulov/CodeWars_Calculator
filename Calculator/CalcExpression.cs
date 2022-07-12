@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Globalization;
+using System.Linq.Expressions;
 
 namespace Calculator
 {
@@ -10,14 +11,13 @@ namespace Calculator
 
         private const string Digits = "0123456789.";
         private const string Ops = "+-*/";
+        private const string Whitespace = " \t\r\n";
         private const char Minus = '-';
         private const char Open = '(';
         private const char Close = ')';
         private const char Default = 'x';
 
         public string Text { get; private set; }
-
-        public string NormalizedText { get; private set; }
 
         public List<Expression> Numbers = new List<Expression>();
 
@@ -39,7 +39,6 @@ namespace Calculator
         public CalcExpression(string input, bool autoEvaluate = false)
         {
             Text = input;
-            NormalizedText = input.Replace(" ", "");
 
             if (autoEvaluate)
                 Evaluate();
@@ -47,14 +46,21 @@ namespace Calculator
 
         public double Evaluate()
         {
+            var lastIndex = Text.Length - 1;
+
             char prev = Default;
             char current;
 
             var numberString = string.Empty;
 
-            for (int i = 0; i < NormalizedText.Length; i++)
+            for (int i = 0; i < Text.Length; i++)
             {
-                current = NormalizedText[i];
+                current = Text[i];
+
+                if (Whitespace.Contains(current))
+                {
+                    continue;
+                }
 
                 if (current == Open)
                 {
@@ -71,25 +77,31 @@ namespace Calculator
                 {
                     numberString += current;
 
-                    if (i != NormalizedText.Length - 1) // if not the end of expression
-                        continue;
-                }
-                
-                if (Ops.Contains(current) || i == NormalizedText.Length - 1)
-                {
-                    var parseResult = double.TryParse(numberString, out double number);
-                    if (!parseResult)
+                    if (i != lastIndex) // if not the end of expression
                     {
-                        // add error
+                        prev = current;
+                        continue;
                     }
+                }
 
-                    var numExp = Expression.Constant(number);
-                    _lastExpression = numExp;
+                if (Ops.Contains(current) || i == lastIndex)
+                {
+                    if (!string.IsNullOrEmpty(numberString))
+                    {
+                        var parseResult = double.TryParse(numberString, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
+                        if (!parseResult)
+                        {
+                            // add error
+                        }
 
-                    if (_rootExpression == null) // if it's the first (and possibly the only) argument
-                        _rootExpression = _lastExpression;
+                        var numExp = Expression.Constant(number);
+                        _lastExpression = numExp;
 
-                    numberString = string.Empty;
+                        if (_rootExpression == null) // if it's the first (and possibly the only) argument
+                            _rootExpression = _lastExpression;
+
+                        numberString = string.Empty;
+                    }
 
                     // =================== operation processing
                     if (_pendindOperation != Default)
@@ -124,7 +136,6 @@ namespace Calculator
                     else
                     {
                         _pendindOperation = current;
-
                     }
                 }
 
