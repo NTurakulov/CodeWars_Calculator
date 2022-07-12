@@ -112,6 +112,14 @@ public class YCalculator : ICalculator
                 var semiResult = Calculate();
                 _contexts.Pop();
                 _currentContext = _contexts.Peek();
+
+                if (IsUnaryMinus)
+                {
+                    semiResult *= -1;
+                    Digits = string.Empty;
+                    IsUnaryMinus = false;
+                }
+
                 Operands.Add(semiResult);
 
                 if (i != lastIndex)
@@ -175,12 +183,6 @@ public class YCalculator : ICalculator
     {
         if (string.IsNullOrEmpty(Digits))
             return;
-
-        if (IsUnaryMinus && _currentContext.Children.Any(c => c.RootExpression == LastExpression))
-        {
-            LastExpression = Expression.Negate(LastExpression);
-            return;
-        }
 
         var parseResult = double.TryParse(Digits, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
         if (!parseResult)
