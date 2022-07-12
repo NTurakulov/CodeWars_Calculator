@@ -20,13 +20,13 @@ internal class MathContext
 
     /// <summary>
     /// List of operations found in text
-    /// For YCalculator implementation
+    /// For <see cref="SimpleCalculator"/> implementation
     /// </summary>
     public List<char> Operations { get; }
 
     /// <summary>
     /// List of numbers found in text
-    /// For YCalculator implementation
+    /// For <see cref="SimpleCalculator"/> implementation
     /// </summary>
     public List<double> Operands { get; }
 

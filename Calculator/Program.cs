@@ -1,6 +1,6 @@
 ﻿using Calculator;
 
-var calc = new XCalculator();
+var calc = new LinqExpressionsCalculator();
 
 var result  = calc.Evaluate("1 + 1");
 
