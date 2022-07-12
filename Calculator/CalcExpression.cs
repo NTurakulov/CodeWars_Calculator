@@ -47,7 +47,6 @@ namespace Calculator
         public double Evaluate()
         {
             var lastIndex = Text.Length - 1;
-
             char prev = Default;
             char current;
 
@@ -111,12 +110,31 @@ namespace Calculator
                         {
                             case '+':
                                 opExp = Expression.Add(_rootExpression, _lastExpression);
+                                _rootExpression = opExp;
                                 break;
                             case '-':
                                 opExp = Expression.Subtract(_rootExpression, _lastExpression);
+                                _rootExpression = opExp;
                                 break;
                             case '*':
-                                opExp = Expression.Multiply(_rootExpression, _lastExpression);
+                                if (_rootExpression.NodeType != ExpressionType.Add &&
+                                    _rootExpression.NodeType != ExpressionType.Subtract)
+                                {
+                                    opExp = Expression.Multiply(_rootExpression, _lastExpression);
+                                    _rootExpression = opExp;
+                                    break;
+                                }
+
+                                var binary = _rootExpression as BinaryExpression;
+                                var right = binary.Right;
+
+                                opExp = Expression.Multiply(right, _lastExpression);
+
+                                if (_rootExpression.NodeType == ExpressionType.Add)
+                                    _rootExpression = Expression.Add(binary.Left, opExp);
+                                else
+                                    _rootExpression = Expression.Subtract(binary.Left, opExp);
+
                                 break;
                             case '/':
                                 opExp = Expression.Divide(_rootExpression, _lastExpression);
@@ -125,7 +143,6 @@ namespace Calculator
                                 throw new ArgumentOutOfRangeException();
                         }
 
-                        _rootExpression = opExp;
                     }
 
                     if (current == Minus && (prev == Minus || prev == Default))
