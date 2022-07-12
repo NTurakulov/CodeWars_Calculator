@@ -10,7 +10,7 @@ namespace Tests
         [Fact]
         public void Test1()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1-1";
 
             var actual = calc.Evaluate(expression);
@@ -21,7 +21,7 @@ namespace Tests
         [Fact]
         public void Test2()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1 -1";
 
             var actual = calc.Evaluate(expression);
@@ -32,7 +32,7 @@ namespace Tests
         [Fact]
         public void Test3()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1- 1";
 
             var actual = calc.Evaluate(expression);
@@ -43,7 +43,7 @@ namespace Tests
         [Fact]
         public void Test4()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1 - 1";
 
             var actual = calc.Evaluate(expression);
@@ -54,7 +54,7 @@ namespace Tests
         [Fact]
         public void Test5()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1- -1";
 
             var actual = calc.Evaluate(expression);
@@ -65,7 +65,7 @@ namespace Tests
         [Fact]
         public void Test6()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1 - -1";
 
             var actual = calc.Evaluate(expression);
@@ -76,7 +76,7 @@ namespace Tests
         [Fact]
         public void Test7()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "1--1";
 
             var actual = calc.Evaluate(expression);
@@ -87,7 +87,7 @@ namespace Tests
         [Fact]
         public void Test8()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "6 + -(4)";
 
             var actual = calc.Evaluate(expression);
@@ -98,7 +98,7 @@ namespace Tests
         [Fact]
         public void Test9()
         {
-            var calc = new XCalculator();
+            var calc = CalculatorProvider.GetCalc();
             var expression = "6 + -( -4)";
 
             var actual = calc.Evaluate(expression);

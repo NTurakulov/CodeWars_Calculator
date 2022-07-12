@@ -7,7 +7,7 @@ public class InvalidCases
     [Fact]
     public void InvalidBraces()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "((2 + 2) * (";
 
         var actual = calc.Evaluate(expression);
@@ -21,7 +21,7 @@ public class InvalidCases
     [Fact]
     public void NumberParseError()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "2.1.3";
 
         var actual = calc.Evaluate(expression);
@@ -36,7 +36,7 @@ public class InvalidCases
     [Fact]
     public void OperationArgumentIsMissing()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "2 +";
 
         var actual = calc.Evaluate(expression);
@@ -50,7 +50,7 @@ public class InvalidCases
     [Fact]
     public void UnaryMinusSeparatedFromNumber()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "2 + - 1";
 
         var actual = calc.Evaluate(expression);

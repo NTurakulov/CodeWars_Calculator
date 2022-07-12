@@ -9,7 +9,7 @@ public class ParenthesesTests
     [Fact]
     public void SimpleValueInParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(1)";
 
         var actual = calc.Evaluate(expression);
@@ -20,7 +20,7 @@ public class ParenthesesTests
     [Fact]
     public void SimpleNegativeValueInParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(-2)";
 
         var actual = calc.Evaluate(expression);
@@ -31,7 +31,7 @@ public class ParenthesesTests
     [Fact]
     public void ValueInNestedParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(((5)))";
 
         var actual = calc.Evaluate(expression);
@@ -42,7 +42,7 @@ public class ParenthesesTests
     [Fact]
     public void NegativeValueInNestedParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(((-5)))";
 
         var actual = calc.Evaluate(expression);
@@ -53,7 +53,7 @@ public class ParenthesesTests
     [Fact]
     public void NegativeValueInParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "2 * (-5)";
 
         var actual = calc.Evaluate(expression);
@@ -64,7 +64,7 @@ public class ParenthesesTests
     [Fact]
     public void SimpleExpressionInParentheses()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(1 + 1)";
 
         var actual = calc.Evaluate(expression);
@@ -77,7 +77,7 @@ public class ParenthesesTests
     [Fact]
     public void ParenthesesPromotesOperationPriority()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "(2 + 2) * 2";
 
         var actual = calc.Evaluate(expression);

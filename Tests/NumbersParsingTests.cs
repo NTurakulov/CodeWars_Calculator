@@ -9,7 +9,7 @@ public class NumbersParsingTests
     [Fact]
     public void SimpleValueReturn()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "123";
 
         var actual = calc.Evaluate(expression);
@@ -20,7 +20,7 @@ public class NumbersParsingTests
     [Fact]
     public void SimpleNegativeValueReturn()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "-123";
 
         var actual = calc.Evaluate(expression);
@@ -31,7 +31,7 @@ public class NumbersParsingTests
     [Fact]
     public void SimpleFractionalValueReturn()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "123.4";
 
         var actual = calc.Evaluate(expression);
@@ -42,7 +42,7 @@ public class NumbersParsingTests
     [Fact]
     public void SimpleFractionalNegativeValueReturn()
     {
-        var calc = new XCalculator();
+        var calc = CalculatorProvider.GetCalc();
         var expression = "-123.4";
 
         var actual = calc.Evaluate(expression);

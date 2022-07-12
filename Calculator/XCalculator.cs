@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace Calculator;
 
-public class XCalculator
+public class XCalculator : ICalculator
 {
     private string ExpressionText { get; set; } = string.Empty;
 
