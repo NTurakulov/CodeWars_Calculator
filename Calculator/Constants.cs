@@ -3,7 +3,7 @@
 internal class Constants
 {
     public const string Digits = "0123456789.";
-    public const string Ops = "+-*/";
+    public const string Operations = "+-*/";
     public const string Whitespace = " \t\r\n";
     public const char Minus = '-';
     public const char Open = '(';

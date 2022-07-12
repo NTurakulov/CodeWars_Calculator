@@ -4,13 +4,14 @@ using System.Linq.Expressions;
 
 namespace Calculator;
 
-internal class CalcExpression
+public class XCalculator
 {
-    private string Text { get; }
+    private string ExpressionText { get; set; } = string.Empty;
 
-    public double Result { get; set; }
+    private double Result { get; set; }
 
     private Stack<MathContext> _contexts = new();
+    private Stack<char> _braces = new();
 
     private MathContext _currentContext;
 
@@ -38,18 +39,17 @@ internal class CalcExpression
         set => _currentContext.PendingOperation = value;
     }
 
-    private List<string> _errors = new List<string>();
+    private List<string> _errors = new();
 
     public ReadOnlyCollection<string> Errors => _errors.AsReadOnly();
 
-    public CalcExpression(string input, bool autoEvaluate = false)
+    private void Reset()
     {
-        Text = input;
+        _errors = new List<string>();
         _currentContext = new MathContext();
+        _contexts = new Stack<MathContext>();
         _contexts.Push(_currentContext);
-
-        if (autoEvaluate)
-            Evaluate();
+        _braces = new Stack<char>();
     }
 
     /// <summary>
@@ -57,23 +57,36 @@ internal class CalcExpression
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public double Evaluate()
+    public double Evaluate(string input)
     {
-        var lastIndex = Text.Length - 1;
+        Reset();
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            var error = "Input string cannot be empty";
+            _errors.Add(error);
+            Result = double.NaN;
+            return Result;
+        }
+
+        ExpressionText = input;
+        var lastIndex = ExpressionText.Length - 1;
         var prev = Constants.Default;
 
-        for (var i = 0; i < Text.Length; i++)
+        for (var i = 0; i < ExpressionText.Length; i++)
         {
-            var current = Text[i];
+            var current = ExpressionText[i];
 
             if (Constants.Whitespace.Contains(current))
             {
                 continue;
             }
 
+            // =================== process parentheses ===================
             if (current == Constants.Open)
             {
-                // start new expression
+                // open new child context
+                _braces.Push(current);
                 _currentContext = new MathContext(_currentContext);
                 _contexts.Push(_currentContext);
                 continue;
@@ -81,7 +94,8 @@ internal class CalcExpression
 
             if (current == Constants.Close)
             {
-                // close expression
+                // close child context
+                _braces.Pop();
                 ParseDigits(i);
                 ProcessLastOperation();
 
@@ -119,9 +133,22 @@ internal class CalcExpression
             // =================== operation processing ===================
             ProcessLastOperation();
 
-            PendingOperation = current;
+            if (Constants.Operations.Contains(current))
+                PendingOperation = current;
 
             prev = current;
+        }
+
+        if (_braces.Count != 0)
+        {
+            var error = "Failed to parse parenthesis";
+            _errors.Add(error);
+        }
+
+        if (PendingOperation != Constants.Default)
+        {
+            var error = "Failed to parse expression - operation argument is missing";
+            _errors.Add(error);
         }
 
         if (_errors.Count > 0)
@@ -145,7 +172,7 @@ internal class CalcExpression
         var parseResult = double.TryParse(Digits, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
         if (!parseResult)
         {
-            var error = $"Failed to parse value {Digits} at index {i - Digits.Length} as valid number";
+            var error = $"Failed to parse value {Digits} at index {i - Digits.Length + 1} as valid number";
             _errors.Add(error);
         }
 
@@ -180,6 +207,8 @@ internal class CalcExpression
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        PendingOperation = Constants.Default; // clear
     }
 
     private void ProcessHighPrioOperation(Func<Expression, Expression, BinaryExpression> operation)
@@ -188,8 +217,9 @@ internal class CalcExpression
         var prevExpressionIsHighPrio = RootExpression.NodeType != ExpressionType.Add &&
                                        RootExpression.NodeType != ExpressionType.Subtract;
 
-        if (prevExpressionIsHighPrio ||
-            _currentContext.Children.Any(c => c.RootExpression == RootExpression))
+        var prevExpressionIsInParentheses = _currentContext.Children.Any(c => c.RootExpression == RootExpression);
+
+        if (prevExpressionIsHighPrio || prevExpressionIsInParentheses)
         {
             RootExpression = operation(RootExpression, LastExpression);
             return;
