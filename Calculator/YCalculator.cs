@@ -15,16 +15,14 @@ public class YCalculator : ICalculator
 
     private MathContext _currentContext;
 
+    private List<double> Operands => _currentContext.Operands;
+
+    private List<char> Operations => _currentContext.Operations;
+
     private string Digits
     {
         get => _currentContext.Digits;
         set => _currentContext.Digits = value;
-    }
-
-    private Expression RootExpression
-    {
-        get => _currentContext.RootExpression;
-        set => _currentContext.RootExpression = value;
     }
 
     private Expression LastExpression
@@ -110,16 +108,11 @@ public class YCalculator : ICalculator
                 // close child context
                 _braces.Pop();
                 ParseArgument(i);
-                ProcessLastOperation();
 
-                var result = _currentContext.RootExpression;
+                var semiResult = Calculate();
                 _contexts.Pop();
                 _currentContext = _contexts.Peek();
-
-                LastExpression = result;
-
-                if (RootExpression == null) // if it's the first (and possibly the only) argument
-                    RootExpression = LastExpression;
+                Operands.Add(semiResult);
 
                 if (i != lastIndex)
                     continue;
@@ -201,84 +194,48 @@ public class YCalculator : ICalculator
         Digits = string.Empty;
     }
 
-    private void ProcessLastOperation()
-    {
-        if (PendingOperation == Constants.Default)
-            return;
-
-        switch (PendingOperation)
-        {
-            case '+':
-                RootExpression = Expression.Add(RootExpression, LastExpression);
-                break;
-            case '-':
-                RootExpression = Expression.Subtract(RootExpression, LastExpression);
-                break;
-            case '*':
-                ProcessHighPrioOperation(Expression.Multiply);
-                break;
-            case '/':
-                ProcessHighPrioOperation(Expression.Divide);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        PendingOperation = Constants.Default; // clear
-    }
-
-    private void ProcessHighPrioOperation(Func<Expression, Expression, BinaryExpression> operation)
-    {
-        // simple case - no need to rebuild the tree
-        var prevExpressionIsHighPrio = RootExpression.NodeType != ExpressionType.Add &&
-                                       RootExpression.NodeType != ExpressionType.Subtract;
-
-        var prevExpressionIsInParentheses = _currentContext.Children.Any(c => c.RootExpression == RootExpression);
-
-        if (prevExpressionIsHighPrio || prevExpressionIsInParentheses)
-        {
-            RootExpression = operation(RootExpression, LastExpression);
-            return;
-        }
-
-        // operation priority changes - need to rebuild the tree
-        var binary = RootExpression as BinaryExpression;
-        var right = binary.Right;
-
-        var opExp = operation(right, LastExpression);
-
-        if (RootExpression.NodeType == ExpressionType.Add)
-            RootExpression = Expression.Add(binary.Left, opExp);
-        else
-            RootExpression = Expression.Subtract(binary.Left, opExp);
-    }
-
+    /// <summary>
+    /// Calculates result for current context
+    /// </summary>
+    /// <returns></returns>
     private double Calculate()
     {
+        if (Operands.Count != Operations.Count + 1)
+        {
+            var error = "Failed to parse expression - operation argument is missing";
+            _errors.Add(error);
+            return double.NaN;
+        }
+
         ProcessOperation('*', (x, y) => x * y);
         ProcessOperation('/', (x, y) => x / y);
         ProcessOperation('+', (x, y) => x + y);
         ProcessOperation('-', (x, y) => x - y);
 
-        return _currentContext.Operands.Single();
+        return Operands.Single();
     }
 
+    /// <summary>
+    /// Reduce expression by applying operation to operands and replacing them with result
+    /// </summary>
+    /// <param name="operationSymbol">Operation symbol in text</param>
+    /// <param name="operation">Operation delegate to applied to operands</param>
     private void ProcessOperation(char operationSymbol, Func<double, double, double> operation)
     {
-        var indexOfMultiplication = _currentContext.Operations.IndexOf(operationSymbol);
+        var indexOfMultiplication = Operations.IndexOf(operationSymbol);
 
         while (indexOfMultiplication != -1)
         {
-            var left = _currentContext.Operands[indexOfMultiplication];
-            var right = _currentContext.Operands[indexOfMultiplication + 1];
+            var left = Operands[indexOfMultiplication];
+            var right = Operands[indexOfMultiplication + 1];
             var semiResult = operation(left, right);
 
-            _currentContext.Operations.RemoveAt(indexOfMultiplication);
-            _currentContext.Operands.RemoveAt(indexOfMultiplication);
-            _currentContext.Operands.RemoveAt(indexOfMultiplication);
-            _currentContext.Operands.Insert(indexOfMultiplication, semiResult);
+            Operations.RemoveAt(indexOfMultiplication);
+            Operands.RemoveAt(indexOfMultiplication);
+            Operands.RemoveAt(indexOfMultiplication);
+            Operands.Insert(indexOfMultiplication, semiResult);
         
-            indexOfMultiplication = _currentContext.Operations.IndexOf(operationSymbol);
+            indexOfMultiplication = Operations.IndexOf(operationSymbol);
         }
     }
 }
