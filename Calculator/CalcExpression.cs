@@ -6,26 +6,37 @@ namespace Calculator;
 
 internal class CalcExpression
 {
-    //public Expression Parent { get; set; }
-
-    //public ICollection<Expression> Children { get; set; }
-
-    private const string Digits = "0123456789.";
-    private const string Ops = "+-*/";
-    private const string Whitespace = " \t\r\n";
-    private const char Minus = '-';
-    private const char Open = '(';
-    private const char Close = ')';
-    private const char Default = 'x';
-
     private string Text { get; }
 
     public double Result { get; set; }
 
-    private Expression _rootExpression;
-    private Expression _lastExpression;
+    private Stack<MathContext> _contexts = new();
 
-    private char _pendingOperation = Default;
+    private MathContext _currentContext;
+
+    private string Digits
+    {
+        get => _currentContext.Digits;
+        set => _currentContext.Digits = value;
+    }
+
+    private Expression RootExpression
+    {
+        get => _currentContext.RootExpression;
+        set => _currentContext.RootExpression = value;
+    }
+
+    private Expression LastExpression
+    {
+        get => _currentContext.LastExpression;
+        set => _currentContext.LastExpression = value;
+    }
+
+    private char PendingOperation
+    {
+        get => _currentContext.PendingOperation;
+        set => _currentContext.PendingOperation = value;
+    }
 
     private List<string> _errors = new List<string>();
 
@@ -34,6 +45,8 @@ internal class CalcExpression
     public CalcExpression(string input, bool autoEvaluate = false)
     {
         Text = input;
+        _currentContext = new MathContext();
+        _contexts.Push(_currentContext);
 
         if (autoEvaluate)
             Evaluate();
@@ -47,35 +60,45 @@ internal class CalcExpression
     public double Evaluate()
     {
         var lastIndex = Text.Length - 1;
-        var prev = Default;
-
-        var numberString = string.Empty;
+        var prev = Constants.Default;
 
         for (var i = 0; i < Text.Length; i++)
         {
             var current = Text[i];
 
-            if (Whitespace.Contains(current))
+            if (Constants.Whitespace.Contains(current))
             {
                 continue;
             }
 
-            if (current == Open)
+            if (current == Constants.Open)
             {
                 // start new expression
+                _currentContext = new MathContext(_currentContext);
+                _contexts.Push(_currentContext);
                 continue;
             }
 
-            if (current == Close)
+            if (current == Constants.Close)
             {
                 // close expression
+                ParseDigits(i);
+                ProcessLastOperation();
+
+                var result = _currentContext.RootExpression;
+                _contexts.Pop();
+                _currentContext = _contexts.Peek();
+                LastExpression = result;
+
+                if (RootExpression == null) // if it's the first (and possibly the only) argument
+                    RootExpression = LastExpression;
                 continue;
             }
 
             // =================== accumulate digits ===================
-            if (Digits.Contains(current))
+            if (Constants.Digits.Contains(current))
             {
-                numberString += current;
+                Digits += current;
 
                 if (i != lastIndex) // if not the end of expression
                 {
@@ -85,53 +108,18 @@ internal class CalcExpression
             }
 
             // =================== parse accumulated digits into number ===================
-            if (!string.IsNullOrEmpty(numberString))
+            ParseDigits(i);
+
+            if (current == Constants.Minus && (prev == Constants.Minus || prev == Constants.Default))
             {
-                var parseResult = double.TryParse(numberString, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
-                if (!parseResult)
-                {
-                    var error = $"Failed to parse value {numberString} at index {i - numberString.Length} as valid number";
-                    _errors.Add(error);
-                }
-
-                var numExp = Expression.Constant(number);
-                _lastExpression = numExp;
-
-                if (_rootExpression == null) // if it's the first (and possibly the only) argument
-                    _rootExpression = _lastExpression;
-
-                numberString = string.Empty;
-            }
-
-            if (current == Minus && (prev == Minus || prev == Default))
-            {
-                numberString += Minus;
+                Digits += Constants.Minus;
                 continue;
             }
 
             // =================== operation processing ===================
-            if (_pendingOperation != Default)
-            {
-                switch (_pendingOperation)
-                {
-                    case '+':
-                        _rootExpression = Expression.Add(_rootExpression, _lastExpression);
-                        break;
-                    case '-':
-                        _rootExpression = Expression.Subtract(_rootExpression, _lastExpression);
-                        break;
-                    case '*':
-                        ProcessHighPrioOperation(Expression.Multiply);
-                        break;
-                    case '/':
-                        ProcessHighPrioOperation(Expression.Divide);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
+            ProcessLastOperation();
 
-            _pendingOperation = current;
+            PendingOperation = current;
 
             prev = current;
         }
@@ -142,32 +130,80 @@ internal class CalcExpression
         }
         else
         {
-            var final = Expression.Lambda<Func<double>>(_rootExpression).Compile();
+            var final = Expression.Lambda<Func<double>>(RootExpression).Compile();
             Result = final();
         }
 
         return Result;
     }
 
+    private void ParseDigits(int i)
+    {
+        if (string.IsNullOrEmpty(Digits))
+            return;
+
+        var parseResult = double.TryParse(Digits, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
+        if (!parseResult)
+        {
+            var error = $"Failed to parse value {Digits} at index {i - Digits.Length} as valid number";
+            _errors.Add(error);
+        }
+
+        var numExp = Expression.Constant(number);
+        LastExpression = numExp;
+
+        if (RootExpression == null) // if it's the first (and possibly the only) argument
+            RootExpression = LastExpression;
+
+        Digits = string.Empty;
+    }
+
+    private void ProcessLastOperation()
+    {
+        if (PendingOperation == Constants.Default)
+            return;
+
+        switch (PendingOperation)
+        {
+            case '+':
+                RootExpression = Expression.Add(RootExpression, LastExpression);
+                break;
+            case '-':
+                RootExpression = Expression.Subtract(RootExpression, LastExpression);
+                break;
+            case '*':
+                ProcessHighPrioOperation(Expression.Multiply);
+                break;
+            case '/':
+                ProcessHighPrioOperation(Expression.Divide);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
     private void ProcessHighPrioOperation(Func<Expression, Expression, BinaryExpression> operation)
     {
         // simple case - no need to rebuild the tree
-        if (_rootExpression.NodeType != ExpressionType.Add &&
-            _rootExpression.NodeType != ExpressionType.Subtract)
+        var prevExpressionIsHighPrio = RootExpression.NodeType != ExpressionType.Add &&
+                                       RootExpression.NodeType != ExpressionType.Subtract;
+
+        if (prevExpressionIsHighPrio ||
+            _currentContext.Children.Any(c => c.RootExpression == RootExpression))
         {
-            _rootExpression = operation(_rootExpression, _lastExpression);
+            RootExpression = operation(RootExpression, LastExpression);
             return;
         }
 
         // operation priority changes - need to rebuild the tree
-        var binary = _rootExpression as BinaryExpression;
+        var binary = RootExpression as BinaryExpression;
         var right = binary.Right;
 
-        var opExp = operation(right, _lastExpression);
+        var opExp = operation(right, LastExpression);
 
-        if (_rootExpression.NodeType == ExpressionType.Add)
-            _rootExpression = Expression.Add(binary.Left, opExp);
+        if (RootExpression.NodeType == ExpressionType.Add)
+            RootExpression = Expression.Add(binary.Left, opExp);
         else
-            _rootExpression = Expression.Subtract(binary.Left, opExp);
+            RootExpression = Expression.Subtract(binary.Left, opExp);
     }
 }
