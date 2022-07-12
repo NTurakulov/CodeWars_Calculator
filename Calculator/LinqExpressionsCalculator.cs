@@ -185,6 +185,10 @@ public class LinqExpressionsCalculator : ICalculator
         return Result;
     }
 
+    /// <summary>
+    /// Parses the value accumulated in buffer string into a number
+    /// </summary>
+    /// <param name="i"></param>
     private void ParseArgument(int i)
     {
         if (string.IsNullOrEmpty(Digits))
@@ -212,6 +216,10 @@ public class LinqExpressionsCalculator : ICalculator
         Digits = string.Empty;
     }
 
+    /// <summary>
+    /// Processes operation after right operand successfully parsed
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     private void ProcessLastOperation()
     {
         if (PendingOperation == Constants.Default)
@@ -238,6 +246,10 @@ public class LinqExpressionsCalculator : ICalculator
         PendingOperation = Constants.Default; // clear
     }
 
+    /// <summary>
+    /// Processes high priority operations and rebuilds the expression tree if required
+    /// </summary>
+    /// <param name="operation"></param>
     private void ProcessHighPrioOperation(Func<Expression, Expression, BinaryExpression> operation)
     {
         // simple case - no need to rebuild the tree

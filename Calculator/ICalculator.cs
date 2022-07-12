@@ -1,12 +1,14 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace Calculator
+namespace Calculator;
+
+/// <summary>
+/// General interface for Calculator implementations
+/// </summary>
+public interface ICalculator
 {
-    public interface ICalculator
-    {
-        public double Evaluate(string input);
+    public double Evaluate(string input);
 
-        public ReadOnlyCollection<string> Errors { get; }
+    public ReadOnlyCollection<string> Errors { get; }
 
-    }
 }

@@ -163,6 +163,10 @@ public class SimpleCalculator : ICalculator
         return Result;
     }
 
+    /// <summary>
+    /// Parses the value accumulated in buffer string into a number
+    /// </summary>
+    /// <param name="i"></param>
     private void ParseArgument(int i)
     {
         if (string.IsNullOrEmpty(Digits))
