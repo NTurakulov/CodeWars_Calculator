@@ -13,10 +13,10 @@ public class LinqExpressionsCalculator : ICalculator
 
     private double Result { get; set; }
 
-    private Stack<MathContext> _contexts = new();
+    private Stack<LinqMathContext> _contexts = new();
     private Stack<char> _braces = new();
 
-    private MathContext _currentContext;
+    private LinqMathContext _currentContext;
 
     private string Digits
     {
@@ -55,8 +55,8 @@ public class LinqExpressionsCalculator : ICalculator
     private void Reset()
     {
         _errors = new List<string>();
-        _currentContext = new MathContext();
-        _contexts = new Stack<MathContext>();
+        _currentContext = new LinqMathContext();
+        _contexts = new Stack<LinqMathContext>();
         _contexts.Push(_currentContext);
         _braces = new Stack<char>();
     }
@@ -102,7 +102,7 @@ public class LinqExpressionsCalculator : ICalculator
             {
                 // open new child context
                 _braces.Push(current);
-                _currentContext = new MathContext(_currentContext);
+                _currentContext = new LinqMathContext(_currentContext);
                 _contexts.Push(_currentContext);
 
                 continue;

@@ -2,19 +2,13 @@
 
 namespace Calculator;
 
+
+/// <summary>
+/// Represents part (or a whole in general case) of mathematical expression during calculation
+/// </summary>
 internal class MathContext
 {
-    internal Expression RootExpression;
-
-    internal Expression LastExpression;
-
     internal string Digits = string.Empty;
-
-    internal char PendingOperation = Constants.Default;
-
-    public MathContext? Parent { get; set; }
-
-    public List<MathContext> Children { get; set; }
     
     public bool IsUnaryMinus { get; set; }
 
@@ -30,15 +24,35 @@ internal class MathContext
     /// </summary>
     public List<double> Operands { get; }
 
-    public MathContext(MathContext parent = null)
+    public MathContext()
     {
-        Children = new List<MathContext>();
+        Operations = new List<char>();
+        Operands = new List<double>();
+    }
+}
+
+internal class LinqMathContext : MathContext
+{
+
+    public LinqMathContext? Parent { get; set; }
+
+    public List<LinqMathContext> Children { get; set; }
+
+    /// <summary>
+    /// Root LINQ Expression for current context
+    /// </summary>
+    internal Expression RootExpression;
+
+    internal Expression LastExpression;
+
+    internal char PendingOperation = Constants.Default;
+
+    public LinqMathContext(LinqMathContext parent = null) 
+    {
+        Children = new List<LinqMathContext>();
         Parent = parent;
 
         if (parent != null)
             parent.Children.Add(this);
-
-        Operations = new List<char>();
-        Operands = new List<double>();
     }
 }

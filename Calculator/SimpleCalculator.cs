@@ -87,7 +87,7 @@ public class SimpleCalculator : ICalculator
             {
                 // open new child context
                 _braces.Push(current);
-                _currentContext = new MathContext(_currentContext);
+                _currentContext = new MathContext();
                 _contexts.Push(_currentContext);
 
                 continue;
