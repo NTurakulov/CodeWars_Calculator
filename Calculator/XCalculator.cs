@@ -114,7 +114,9 @@ public class XCalculator
 
                 if (RootExpression == null) // if it's the first (and possibly the only) argument
                     RootExpression = LastExpression;
-                continue;
+
+                if (i != lastIndex)
+                    continue;
             }
 
             // =================== accumulate digits ===================

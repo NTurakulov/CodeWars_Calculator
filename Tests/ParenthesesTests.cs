@@ -40,6 +40,28 @@ public class ParenthesesTests
     }
 
     [Fact]
+    public void NegativeValueInNestedParentheses()
+    {
+        var calc = new XCalculator();
+        var expression = "(((-5)))";
+
+        var actual = calc.Evaluate(expression);
+
+        Assert.Equal(-5, actual);
+    }
+
+    [Fact]
+    public void NegativeValueInParentheses()
+    {
+        var calc = new XCalculator();
+        var expression = "2 * (-5)";
+
+        var actual = calc.Evaluate(expression);
+
+        Assert.Equal(-10, actual);
+    }
+
+    [Fact]
     public void SimpleExpressionInParentheses()
     {
         var calc = new XCalculator();
