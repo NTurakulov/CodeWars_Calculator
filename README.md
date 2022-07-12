@@ -5,7 +5,7 @@ https://www.codewars.com/kata/52a78825cdfc2cfc87000005
 
 # Solution overview
 1. Main logic is implemented using LINQ Expression mechanics
-1. Calculator processes the provided mathematical expression with a single for cycle parsing arguments and operations and (re)building the expression tree on the go
+1. Calculator processes the provided mathematical expression with a single `for` cycle parsing arguments/operations and (re)building the expression tree on the go
 1. `MathContext` class represents a part (or a whole in general case) of provided expression and used to process subexpressions in parentheses 
 1. `XCalculator` class name is used to avoid conflict with the same namespace
 1. Is sake of simplicity `double` type is used, not `decimal`
