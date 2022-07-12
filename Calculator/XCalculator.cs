@@ -43,7 +43,11 @@ public class XCalculator
 
     public ReadOnlyCollection<string> Errors => _errors.AsReadOnly();
 
-    private bool _isUnaryMinus = false;
+    private bool IsUnaryMinus
+    {
+        get => _currentContext.IsUnaryMinus;
+        set => _currentContext.IsUnaryMinus = value;
+    }
 
     private void Reset()
     {
@@ -81,7 +85,7 @@ public class XCalculator
 
             if (Constants.Whitespace.Contains(current))
             {
-                if (_isUnaryMinus)
+                if (IsUnaryMinus)
                 {
                     var error = $"Unary minus should be separated from the number with a whitespace (at index {i})";
                     _errors.Add(error);
@@ -97,6 +101,7 @@ public class XCalculator
                 _braces.Push(current);
                 _currentContext = new MathContext(_currentContext);
                 _contexts.Push(_currentContext);
+
                 continue;
             }
 
@@ -104,12 +109,13 @@ public class XCalculator
             {
                 // close child context
                 _braces.Pop();
-                ParseDigits(i);
+                ParseArgument(i);
                 ProcessLastOperation();
 
                 var result = _currentContext.RootExpression;
                 _contexts.Pop();
                 _currentContext = _contexts.Peek();
+
                 LastExpression = result;
 
                 if (RootExpression == null) // if it's the first (and possibly the only) argument
@@ -132,15 +138,15 @@ public class XCalculator
             }
 
             // =================== parse accumulated digits into number ===================
-            ParseDigits(i);
+            ParseArgument(i);
 
             if (current == Constants.Minus && (Constants.Operations.Contains(prev) || prev == Constants.Default))
             {
-                _isUnaryMinus = true;
+                IsUnaryMinus = true;
                 Digits += Constants.Minus;
                 continue;
             }
-            _isUnaryMinus = false;
+            IsUnaryMinus = false;
 
             // =================== operation processing ===================
             ProcessLastOperation();
@@ -176,10 +182,16 @@ public class XCalculator
         return Result;
     }
 
-    private void ParseDigits(int i)
+    private void ParseArgument(int i)
     {
         if (string.IsNullOrEmpty(Digits))
             return;
+
+        if (IsUnaryMinus && _currentContext.Children.Any(c => c.RootExpression == LastExpression))
+        {
+            LastExpression = Expression.Negate(LastExpression);
+            return;
+        }
 
         var parseResult = double.TryParse(Digits, NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
         if (!parseResult)

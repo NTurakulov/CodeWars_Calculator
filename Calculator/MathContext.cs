@@ -15,6 +15,8 @@ internal class MathContext
     public MathContext? Parent { get; set; }
 
     public List<MathContext> Children { get; set; }
+    
+    public bool IsUnaryMinus { get; set; }
 
     public MathContext(MathContext parent = null)
     {
